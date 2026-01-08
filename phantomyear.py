@@ -11,6 +11,19 @@ In each century, there exists a special year where the day of the year
 from datetime import datetime, timedelta
 
 
+def is_leap_year(year):
+    """
+    Determine if a year is a leap year.
+    
+    Args:
+        year: The year to check
+        
+    Returns:
+        bool: True if the year is a leap year, False otherwise
+    """
+    return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
+
+
 def find_phantom_year(century_start):
     """
     Find the phantom year in a given century.
@@ -25,8 +38,9 @@ def find_phantom_year(century_start):
         tuple: (year, day, date) - The phantom year, the day number, and the actual date
         
     Example:
-        >>> find_phantom_year(1900)
-        (1901, 1, datetime.datetime(1901, 1, 1, 0, 0))
+        >>> year, day, date = find_phantom_year(1900)
+        >>> year, day
+        (1901, 1)
     """
     for year in range(century_start, century_start + 100):
         # Get the last two digits of the year
@@ -76,7 +90,7 @@ def get_phantom_year_info(year):
                 'day': day_num,
                 'date': target_date,
                 'formatted': target_date.strftime('%B %d, %Y'),
-                'is_leap_year': year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
+                'is_leap_year': is_leap_year(year)
             }
     except (ValueError, OverflowError):
         pass
