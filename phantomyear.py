@@ -26,7 +26,7 @@ def find_phantom_year(century_start):
         
     Example:
         >>> find_phantom_year(1900)
-        (1965, 65, datetime.datetime(1965, 3, 6, 0, 0))
+        (1901, 1, datetime.datetime(1901, 1, 1, 0, 0))
     """
     for year in range(century_start, century_start + 100):
         # Get the last two digits of the year
