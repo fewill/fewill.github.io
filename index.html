@@ -46,6 +46,48 @@
             margin: 2em 0;
             border: 2px solid #9370db;
         }
+        .sighting-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        .nav-btn {
+            background-color: #483d8b;
+            color: #e0e0e0;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: Georgia, serif;
+            font-size: 0.85em;
+            min-width: 90px;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+        .nav-btn:hover:not(:disabled) {
+            background-color: #6a5acd;
+        }
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .current-date {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ba55d3;
+            min-width: 180px;
+        }
+        .countdown {
+            margin-top: 10px;
+            font-size: 0.95em;
+            color: #9370db;
+        }
+        .sighting-label {
+            font-size: 1.15em;
+            color: #b0b0b0;
+            margin-bottom: 8px;
+        }
         ul {
             margin: 1em 0;
         }
@@ -73,7 +115,13 @@
     <p>It is as if a single, extra "Phantom Year" has been cut up and scattered across the first three decades of the century. Once those 365 days are used up on December 31, 2031, the pattern disappears completely until the next century.</p>
     
     <div class="next-sighting">
-        <strong>Next Sighting:</strong> January 26, 2026. Catch it while you can! 👻
+        <div class="sighting-label" id="sighting-label">Next Sighting</div>
+        <div class="sighting-nav">
+            <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&lt; <span id="prev-label">Dec 25</span></button>
+            <span class="current-date" id="current-date">January 26, 2026</span>
+            <button class="nav-btn" id="next-btn" onclick="navigate(1)"><span id="next-label">Feb 26</span> &gt;</button>
+        </div>
+        <div class="countdown" id="countdown">3 days away 👻</div>
     </div>
     
     <h2>What Are These Dates?</h2>
@@ -156,10 +204,135 @@
         <li><strong>The Fractal:</strong> When you add up all those hidden dates, they equal exactly one year (365 days).</li>
     </ul>
     
-    <p>The structure of a single year is "embedded" or repeated inside the structure of the century. It's a small version of time hiding inside a larger version of time—a <strong>"Year within a Year."</strong></p>
+    <p>The structure of a single year is "embedded" or repeated inside the structure of the century. It's a small version of time hiding inside a larger version of time—a <strong>"Phantom Year within a Century."</strong></p>
     
     <footer style="margin-top: 3em; padding-top: 2em; border-top: 1px solid #483d8b; text-align: center; color: #888; font-size: 0.9em;">
         <p>&copy; 2026 BMW Partners LLC. All rights reserved.</p>
     </footer>
+
+    <script>
+        // Generate all Phantom Year dates (where DD = YY, from 2001-2031)
+        function generatePhantomDates() {
+            const dates = [];
+            const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+            for (let year = 2001; year <= 2031; year++) {
+                const yy = year - 2000; // 1-31
+                for (let month = 0; month < 12; month++) {
+                    // Check if this day exists in this month
+                    if (yy <= monthDays[month]) {
+                        dates.push(new Date(year, month, yy));
+                    }
+                }
+            }
+            return dates;
+        }
+
+        const phantomDates = generatePhantomDates();
+        let currentIndex = 0;
+
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+        const shortMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                                 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        function formatDate(date) {
+            return `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+        }
+
+        function formatShortDate(date) {
+            return `${shortMonthNames[date.getMonth()]} ${date.getDate()}`;
+        }
+
+        function findNextSightingIndex() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            for (let i = 0; i < phantomDates.length; i++) {
+                if (phantomDates[i] >= today) {
+                    return i;
+                }
+            }
+            // All dates are in the past
+            return phantomDates.length - 1;
+        }
+
+        function getCountdownText(date) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const target = new Date(date);
+            target.setHours(0, 0, 0, 0);
+
+            const diffTime = target - today;
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) {
+                return "Today! 👻";
+            } else if (diffDays === 1) {
+                return "Tomorrow! 👻";
+            } else if (diffDays > 1) {
+                return `${diffDays} days away 👻`;
+            } else if (diffDays === -1) {
+                return "Yesterday";
+            } else {
+                return `${Math.abs(diffDays)} days ago`;
+            }
+        }
+
+        function updateDisplay() {
+            const date = phantomDates[currentIndex];
+            const nextSightingIndex = findNextSightingIndex();
+
+            // Update current date
+            document.getElementById('current-date').textContent = formatDate(date);
+
+            // Update label based on whether viewing past, present, or future
+            const label = document.getElementById('sighting-label');
+            if (currentIndex === nextSightingIndex) {
+                label.textContent = 'Next Sighting';
+            } else if (currentIndex < nextSightingIndex) {
+                label.textContent = 'Past Sighting';
+            } else {
+                label.textContent = 'Future Sighting';
+            }
+
+            // Update countdown
+            document.getElementById('countdown').textContent = getCountdownText(date);
+
+            // Update prev button
+            const prevBtn = document.getElementById('prev-btn');
+            const prevLabel = document.getElementById('prev-label');
+            if (currentIndex > 0) {
+                prevBtn.disabled = false;
+                prevLabel.textContent = formatShortDate(phantomDates[currentIndex - 1]);
+            } else {
+                prevBtn.disabled = true;
+                prevLabel.textContent = '---';
+            }
+
+            // Update next button
+            const nextBtn = document.getElementById('next-btn');
+            const nextLabel = document.getElementById('next-label');
+            if (currentIndex < phantomDates.length - 1) {
+                nextBtn.disabled = false;
+                nextLabel.textContent = formatShortDate(phantomDates[currentIndex + 1]);
+            } else {
+                nextBtn.disabled = true;
+                nextLabel.textContent = '---';
+            }
+        }
+
+        function navigate(direction) {
+            const newIndex = currentIndex + direction;
+            if (newIndex >= 0 && newIndex < phantomDates.length) {
+                currentIndex = newIndex;
+                updateDisplay();
+            }
+        }
+
+        // Initialize on page load
+        currentIndex = findNextSightingIndex();
+        updateDisplay();
+    </script>
 </body>
 </html>
